@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import express from "express";
-import connectDB from "./dbConnection.js"
+import connectDB from "./dbConnection.js";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
 
 dotenv.config({
@@ -8,10 +10,43 @@ dotenv.config({
 })
 
 const app = express();
+
 const PORT = process.env.PORT || 8080;
 const HOST = process.env.HOST;
 
+app.use(cors({
+    origin: process.env.CORS_ORIGIN,
+    // credentials: true
+}));
+
+app.use(express.json({
+    limit: "16kb"
+}));
+
+app.use(express.urlencoded({
+    extended: true,
+    limit: "16kb"
+}));
+
+app.use(express.static("public"))
+
+app.use(cookieParser())
+
 connectDB()
+    .then (() => {
+
+        app.on("error", (error) => {
+            console.log("Error : ", error);
+            throw error
+        })
+
+        app.listen(PORT, () => {
+            console.log("Server is running on PORT : ", PORT);
+        })
+    })
+    .catch ((err) => {
+        console.log("Error connection to Database!!", err);
+    })
 
 
 
